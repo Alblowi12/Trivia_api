@@ -10,20 +10,20 @@ QUESTIONS_PER_PAGE = 10
 
 def create_app(test_config=None):
   # create and configure the app
-    app = Flask(__name__)
-    app.config['JSON_SORT_KEYS'] = True 
-    setup_db(app)
+  app = Flask(__name__)
+  app.config['JSON_SORT_KEYS'] = True 
+  setup_db(app)
   
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-    CORS(app, resources={r'/api/*': {'origins': '*'}})
+  CORS(app, resources={r'/api/*': {'origins': '*'}})
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
-    @app.after_request
-    def after_request(response):
+  @app.after_request
+  def after_request(response):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
         return response
@@ -34,34 +34,18 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/categories', methods= ['GET'])
+  @app.route('/categories', methods=['GET'])
   def get_cat():
         pg = request.args.get('page', 1, type=int)
         st = (pg - 1) * 10
         end = st + 10
         catg = Category.query.order_by(Category.id).all()
-        formtcat = [ct.format() for ct in catg]  
-
-
-
+        formatted_catg = [ct.format() for ct in catg]    
         return jsonify({
             'success':True,
-            'catg': formtcat[start:end], 
-            'Total catagory': len(formtcat) 
+            'catg': formatted_catg[st:end], 
+            'Total catagory': len(formatted_catg) 
         })
-
-        
-  @app.route('/categories/<int:cat_id>')
-  def get_ctg(cat_id):
-        ctg = Category.query.filter(Category.id == cat_id).one_or_none()
-
-        if ctg is None:
-              abort(404) 
-        else:     
-             return jsonify({
-                    'success':True,
-                    'books': ctg.format()
-               })        
 
   '''
   @TODO: 
