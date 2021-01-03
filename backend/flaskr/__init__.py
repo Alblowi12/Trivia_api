@@ -8,6 +8,26 @@ import random, json
 from models import setup_db, Question, Category 
 
 QUESTIONS_PER_PAGE = 10
+def paginate_questions(request, ques):
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+
+    que = [question.format() for question in ques]
+    cur_que = que[start:end]
+
+    return cur_que
+    
+QUESTIONS_PER_CATG = 10
+def paginate_categories(request, cat):
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * QUESTIONS_PER_CATG
+    end = start + QUESTIONS_PER_CATG
+
+    catg = [catg.type for catg in cat]
+    cur_cat = catg[start:end]
+
+    return cur_cat   
 
 def create_app(test_config=None):
   # create and configure the app
@@ -55,22 +75,24 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-  @app.route('/question', methods=['GET'])
-  def get_que():
-        pg = request.args.get('page', 1, type=int)
-        st = (pg - 1) * 10
-        end = st + 10
-        que = Question.query.all()
-        formatted_que = [qt.format() for qt in que] 
-        ca = Category.query.order_by(Category.type).all()      
-        return jsonify({
-            'success':True,
-            'question': formatted_que[st:end],
-            'Total_Question': len(formatted_que),
-            'categories': {cat.id: cat.type for cat in ca},
-            'current_category': None
-                    })
 
+  @app.route('/question', methods=['GET'])
+  def retrieve_question():
+        ques = Question.query.order_by(Question.id).all()
+        cur = paginate_questions(request, ques)
+
+        cat = Category.query.order_by(Category.type).all()
+  
+        if len(cur) == 0:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'questions': cur,
+            'total_questions': len(ques),
+            'categories': {c.id: c.type for c in cat},
+            'current_category': None
+        })
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
@@ -89,6 +111,31 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
+
+  @app.route('/question', methods=['POST'])
+  def add_ques():
+      body = request.get_json()
+      try:
+            if ('question' in body and 'answer' in body and 'difficulty' in body and 'category' in body):
+                  qn = body.get('question')
+                  an = body.get('answer')
+                  dif = body.get('difficulty')
+                  cat = body.get('category')
+
+                  que = Question(question=qn, answer=an,difficulty=dif, category=cat)
+                  que.insert()
+
+                  return jsonify({
+                         'Success': True,
+                         'Question is Added': que.id
+                    })
+            else:
+                   return abort(404)
+      except:
+               abort(422)
+
+
+
 
   '''
   @TODO: 
@@ -112,16 +159,18 @@ def create_app(test_config=None):
 
   @app.route('/category/<int:category_id>/question', methods=['GET'])
   def get_ct(category_id):
-      ct = Category.query.filter(Category.id == category_id).one_or_none()
+      ct = Category.query.filter(Category.id == category_id).all()
       qe = Question.query.filter(Question.category==category_id).all()
-      cnt = Category.query.get(category_id)
-      if ct is None:
-            abort(404) 
+      cnt = paginate_categories(request, ct)
+      q = paginate_questions(request, qe)
+      if len(cnt) == 0:
+            abort(404)                      
       else:          
             return jsonify({
             'success':True,
-            'question': {qa.id: qa.question for qa in qe},
-            'current_category': str(cnt.type)
+            'total_questions': len(qe),
+            'question': [qs.format() for qs in qe],
+            'current_category': cnt
             })
   '''
   @TODO: 
@@ -140,7 +189,43 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  @app.errorhandler(400)
+  def bad_request(error):
+        return jsonify ({
+              "success": False,
+              "error": 400,
+              "message": "Bad Request"
+        }), 400
+
+  @app.errorhandler(404)
+  def not_found(error):
+        return jsonify ({
+              "success": False,
+              "error": 404,
+              "message": "Not Found"
+        }), 404
+
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+        return jsonify({
+              "success": False,
+              "error": 405,
+              "message": "Method Is Not Allowed"
+        }), 405
+
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+        return jsonify({
+              "success": False,
+              "error": 422,
+              "message": "Cannot be Process"
+        }), 422
+          
+
+
+
+   
   return app
 
     
