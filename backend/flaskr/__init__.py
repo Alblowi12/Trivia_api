@@ -1,10 +1,11 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify 
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
+import random, json
 
-from models import setup_db, Question, Category
+
+from models import setup_db, Question, Category 
 
 QUESTIONS_PER_PAGE = 10
 
@@ -17,14 +18,13 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  CORS(app, resources={r'/api/*': {'origins': '*'}})
-
+  cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
   @app.after_request
   def after_request(response):
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
         response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
         return response
 
@@ -34,17 +34,13 @@ def create_app(test_config=None):
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
-  @app.route('/categories', methods=['GET'])
+  @app.route('/category', methods=['GET'])
   def get_cat():
-        pg = request.args.get('page', 1, type=int)
-        st = (pg - 1) * 10
-        end = st + 10
         catg = Category.query.order_by(Category.id).all()
-        formatted_catg = [ct.format() for ct in catg]    
         return jsonify({
             'success':True,
-            'catg': formatted_catg[st:end], 
-            'Total catagory': len(formatted_catg) 
+            'categories': {catg2.id: catg2.type for catg2 in catg}
+
         })
 
   '''
@@ -59,18 +55,21 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
-  @app.route('/questions', methods=['GET'])
+  @app.route('/question', methods=['GET'])
   def get_que():
         pg = request.args.get('page', 1, type=int)
         st = (pg - 1) * 10
         end = st + 10
-        que = Question.query.order_by(Question.id).all()
-        formatted_que = [qt.format() for qt in que]    
+        que = Question.query.all()
+        formatted_que = [qt.format() for qt in que] 
+        ca = Category.query.order_by(Category.type).all()      
         return jsonify({
             'success':True,
-            'question': formatted_que[st:end], 
-            'Total Question': len(formatted_que) 
-        })
+            'question': formatted_que[st:end],
+            'Total_Question': len(formatted_que),
+            'categories': {cat.id: cat.type for cat in ca},
+            'current_category': None
+                    })
 
   '''
   @TODO: 
@@ -111,7 +110,19 @@ def create_app(test_config=None):
   category to be shown. 
   '''
 
-
+  @app.route('/category/<int:category_id>/question', methods=['GET'])
+  def get_ct(category_id):
+      ct = Category.query.filter(Category.id == category_id).one_or_none()
+      qe = Question.query.filter(Question.category==category_id).all()
+      cnt = Category.query.get(category_id)
+      if ct is None:
+            abort(404) 
+      else:          
+            return jsonify({
+            'success':True,
+            'question': {qa.id: qa.question for qa in qe},
+            'current_category': str(cnt.type)
+            })
   '''
   @TODO: 
   Create a POST endpoint to get questions to play the quiz. 
