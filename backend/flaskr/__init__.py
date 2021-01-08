@@ -100,7 +100,17 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
   '''
-
+  @app.route('/question/<qe_id>', methods=['DELETE'])
+  def delete_que(qe_id):
+        try:
+            que = Question.query.get(qe_id)
+            que.delete()
+            return jsonify({
+                'success': True,
+                'deleted': qe_id
+            })
+        except:
+            abort(400)
   '''
   @TODO: 
   Create an endpoint to POST a new question, 
@@ -147,7 +157,35 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  @app.route('/quiz', methods=['POST'])
+  def play_quiz():
 
+        try:
+
+            body = request.get_json()
+
+            if not ('quiz_category' in body and 'previous_questions' in body):
+                abort(422)
+
+            cat = body.get('quiz_category')
+            pre_que = body.get('previous_questions')
+
+            if cat['type'] == 'click':
+                available_questions = Question.query.filter(
+                    Question.id.notin_((pre_que))).all()
+            else:
+                available_questions = Question.query.filter_by(
+                    category=cat['id']).filter(Question.id.notin_((pre_que))).all()
+
+            new_question = available_questions[random.randrange(
+                0, len(available_questions))].format() if len(available_questions) > 0 else None
+
+            return jsonify({
+                'success': True,
+                'question': new_question
+            })
+        except:
+            abort(400)
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
@@ -183,7 +221,22 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/question/search', methods=['POST'])
+  def search_questions():
+        body = request.get_json()
+        keyword = body.get('searchTerm', None)
 
+        if keyword:
+            res = Question.query.filter(
+                Question.question.ilike(f'%{keyword}%')).all()
+
+            return jsonify({
+                'success': True,
+                'questions': [question.format() for question in res],
+                'total_questions': len(res),
+                'current_category': None
+            })
+        abort(400)
   '''
   @TODO: 
   Create error handlers for all expected errors 
@@ -221,6 +274,14 @@ def create_app(test_config=None):
               "error": 422,
               "message": "Cannot be Process"
         }), 422
+ 
+  @app.errorhandler(500)
+  def int_server(error):
+        return jsonify({
+              "success": False,
+              "error": 500,
+              "message": "Internal Server Error"
+        }), 500        
           
 
 
