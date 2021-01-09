@@ -110,7 +110,7 @@ def create_app(test_config=None):
                 'deleted': qe_id
             })
         except:
-            abort(400)
+            abort(422)
   '''
   @TODO: 
   Create an endpoint to POST a new question, 
@@ -140,7 +140,7 @@ def create_app(test_config=None):
                          'Question is Added': que.id
                     })
             else:
-                   return abort(404)
+                   return abort(422)
       except:
                abort(422)
 
@@ -185,7 +185,7 @@ def create_app(test_config=None):
                 'question': new_question
             })
         except:
-            abort(400)
+            abort(422)
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
@@ -236,7 +236,7 @@ def create_app(test_config=None):
                 'total_questions': len(res),
                 'current_category': None
             })
-        abort(400)
+        abort(404)
   '''
   @TODO: 
   Create error handlers for all expected errors 
@@ -255,7 +255,7 @@ def create_app(test_config=None):
         return jsonify ({
               "success": False,
               "error": 404,
-              "message": "Not Found"
+              "message": "resource not found"
         }), 404
 
   @app.errorhandler(405)
@@ -272,7 +272,7 @@ def create_app(test_config=None):
         return jsonify({
               "success": False,
               "error": 422,
-              "message": "Cannot be Process"
+              "message": "unprocessable"
         }), 422
  
   @app.errorhandler(500)

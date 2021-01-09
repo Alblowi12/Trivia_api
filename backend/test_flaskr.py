@@ -45,7 +45,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
 
     def test_404_sent_requesting_questions_beyond_valid_page(self):
-        res = self.client().get('/questions?page=1000')
+        res = self.client().get('/question?page=1000')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -106,7 +106,7 @@ class TriviaTestCase(unittest.TestCase):
         total_questions_after = len(Question.query.all())
 
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data["success"], True)
+        self.assertEqual(data["Success"], True)
         self.assertEqual(total_questions_after, total_questions_before + 1)
 
     def test_422_add_question(self):
@@ -149,7 +149,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(len(data['questions']))
+        self.assertTrue(len(data['question']))
         self.assertTrue(data['total_questions'])
         self.assertTrue(data['current_category'])
 
@@ -165,7 +165,7 @@ class TriviaTestCase(unittest.TestCase):
         new_quiz_round = {'previous_questions': [],
                           'quiz_category': {'type': 'Entertainment', 'id': 5}}
 
-        res = self.client().post('/quizzes', json=new_quiz_round)
+        res = self.client().post('/quiz', json=new_quiz_round)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -173,7 +173,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_404_play_quiz(self):
         new_quiz_round = {'previous_questions': []}
-        res = self.client().post('/quizzes', json=new_quiz_round)
+        res = self.client().post('/quiz', json=new_quiz_round)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
