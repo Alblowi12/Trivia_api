@@ -87,6 +87,7 @@ Returns all questions
 questions are in a paginated.
 pages could be requested by a query string
 Sample: curl http://127.0.0.1:5000/question
+```
 
 {
   "categories": {
@@ -173,30 +174,41 @@ Sample: curl http://127.0.0.1:5000/question
   "success": true, 
   "total_questions": 25
 }
+```
 
 DELETE /question/int:id\
 General:
 
 Deletes a question by id form the url parameter.
 Sample: curl http://127.0.0.1:5000/question/33 -X DELETE
+```
+
 {
   "deleted": "33", 
   "success": true
 }
+```
+
 POST /question
 General:
 
 Creates a new question based on a payload.
 Sample: curl http://127.0.0.1:5000/question -X POST -H "Content-Type: application/json" -d '{"question":"What Is The CPU", "answer":"Central Unit Process", "category":1, "difficulty":4}'
+```
+
 {
   "Question is Added": 34, 
   "Success": true
 }
+```
+
 POST /question/search
 General:
 
 returns questions that has the search substring
 Sample: curl http://127.0.0.1:5000/question/search -X POST -H "Content-Type: application/json" -d '{"searchTerm": "CPU"}'
+```
+
 {
   "current_category": null, 
   "questions": [
@@ -211,11 +223,14 @@ Sample: curl http://127.0.0.1:5000/question/search -X POST -H "Content-Type: app
   "success": true, 
   "total_questions": 1
 }
+```
 
 GET /category/int:id\/question
 General:
 Gets questions by category using the id from the url parameter.
 Sample: curl http://127.0.0.1:5000/category/5/question
+```
+
 {
   "current_category": [
     "Entertainment"
@@ -253,12 +268,16 @@ Sample: curl http://127.0.0.1:5000/category/5/question
   "success": true, 
   "total_questions": 4
 }
+```
+
 POST /quiz
 General
 
 Takes the category and previous questions in the request.
 Return random question not in previous questions.
 Sample: curl http://127.0.0.1:5000/quiz -X POST -H "Content-Type: application/json" -d '{"previous_questions": [3, 3], "quiz_category": {"type": "Science", "id": "1"}}'
+```
+
 {
   "question": {
     "answer": "Central Unit Process", 
@@ -269,10 +288,12 @@ Sample: curl http://127.0.0.1:5000/quiz -X POST -H "Content-Type: application/js
   }, 
   "success": true
 }
+```
+
 
 Authors
-Hatem Alblowi:
+[Hatem Alblowi](https://github.com/Alblowi12):
 my part was Complete the code, editing endpoints and test The endpoints  
 
-Udacity:
-provided the starter files  which include backend and frontend folders 
+[Udacity](https://github.com/udacity):
+provided the starter files  which include backend and frontend folders a
